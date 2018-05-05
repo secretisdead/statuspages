@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% from 'status_displays.jinja' import status_messages, status_descriptions %}
+{% set status_message_display = status_message %}
+{% if status_message in status_messages %}
+	{% set status_message_display = status_messages[status_message] %}
+{% endif %}
+
+{% block title %}{{ status_message_display }}{% endblock %}
+{% block style %}
+	{{ super() }}
+	<link rel="stylesheet" type="text/css" href="{{ url_for('status_pages.static', filename='links/status_icons.css') }}">
+{% endblock %}
+{% block content %}
+	<div id="status_page" class="status_{{ status_code }}">
+		<div id="status_message">{{ status_message_display }}</div>
+		{% if status_message in status_descriptions %}
+			<div id="status_description">
+				{% if 0 < status_data|length %}
+					{{ status_descriptions[status_message].format(**status_data) }}
+				{% else %}
+					{{ status_descriptions[status_message] }}
+				{% endif %}
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}
