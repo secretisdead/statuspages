@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, g
 
 from werkzeug.exceptions import HTTPException, default_exceptions, _aborter
 
@@ -18,24 +18,31 @@ status_pages = Blueprint(
 	static_url_path='/status_pages'
 )
 
-def status_page(status_code, data={}):
-	status_message = status_code
-	status_data = {}
-	if isinstance(data, dict):
-		if 'message' in data and data['message']:
-			status_message = data['message']
-			del data['message']
-		if 0 < len(data):
-			status_data = data
+def status_page(status_code, status_response={}):
 	return (
-		render_template(
-			'status_page.html',
-			status_code=status_code,
-			status_message=status_message,
-			status_data=status_data,
-		),
+		render_template('status_page.html', **status_response),
 		status_code
 	)
+
+def json_response(status_code, status_response={}):
+	import json
+
+	from flask import make_response
+
+	r = make_response(json.dumps(status_response))
+	r.mimetype = 'application/json'
+	return r, status_code
+
+def success(data={}):
+	status_response = {
+		'status_code': 200,
+		'status_message': 'success',
+	}
+	if data:
+		status_response['status_data'] = data
+	if hasattr(g, 'json_request'):
+		return json_response(200, status_response)
+	return status_page(200, status_response)
 
 @status_pages.app_errorhandler(400)
 @status_pages.app_errorhandler(401)
@@ -63,4 +70,22 @@ def status_page(status_code, data={}):
 @status_pages.app_errorhandler(502)
 @status_pages.app_errorhandler(503)
 def error_handler(e):
-	return status_page(e.code, e.description)
+	status_code = e.code
+	data = e.description
+	status_message = status_code
+	status_data = {}
+	if isinstance(data, dict):
+		if 'message' in data and data['message']:
+			status_message = data['message']
+			del data['message']
+		if 0 < len(data):
+			status_data = data
+	status_response = {
+		'status_code': status_code,
+		'status_message': status_message,
+	}
+	if status_data:
+		status_response['status_data'] = status_data
+	if hasattr(g, 'json_request'):
+		return json_response(status_code, status_response)
+	return status_page(status_code, status_response)
