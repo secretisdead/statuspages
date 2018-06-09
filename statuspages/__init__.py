@@ -38,8 +38,8 @@ def success(data={}):
 		'status_code': 200,
 		'status_message': 'success',
 	}
-	if data:
-		status_response['status_data'] = data
+	if data and isinstance(data, dict):
+		status_response = {**status_response, **data}
 	if hasattr(g, 'json_request'):
 		return json_response(200, status_response)
 	return status_page(200, status_response)
