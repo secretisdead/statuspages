@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, g
+import json
 
+from flask import Blueprint, render_template, g, make_response
 from werkzeug.exceptions import HTTPException, default_exceptions, _aborter
 
 # implement 402 manually until and unless it becomes part of werkzeug
@@ -25,10 +26,6 @@ def status_page(status_code, status_response={}):
 	)
 
 def json_response(status_code, status_response={}):
-	import json
-
-	from flask import make_response
-
 	r = make_response(json.dumps(status_response))
 	r.mimetype = 'application/json'
 	return r, status_code
