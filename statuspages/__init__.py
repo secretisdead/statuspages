@@ -15,7 +15,7 @@ status_pages = Blueprint(
 	__name__,
 	template_folder='templates',
 	static_folder='static',
-	static_url_path='/status_pages'
+	static_url_path='/static/status_pages'
 )
 
 def status_page(status_code, status_response={}):
